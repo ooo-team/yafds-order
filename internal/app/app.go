@@ -5,11 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
-	"github.com/google/uuid"
+	model "github.com/ooo-team/yafds-order/internal/model/order"
 	// model "github.com/ooo-team/yafds-order/internal/model/order"
 )
 
@@ -46,28 +45,24 @@ func (a *App) createOrder(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	// Декодирование JSON
-	var requestData InputOrder
+	var requestData model.Order
 	err = json.Unmarshal(body, &requestData)
 	if err != nil {
 		http.Error(w, "Failed to decode JSON", http.StatusBadRequest)
 		return
 	}
 
-	orderUUID, err := uuid.NewUUID() // перенести в отдельную папку service по аналогии с yafds-customer/internal/service
-	if err != nil {
-		errMsg := fmt.Sprintf("Failed to generate uuid: %v\n", err)
-		http.Error(w, errMsg, http.StatusBadRequest)
-		return
-	}
-	log.Printf("Generated uuid.ID = %d", orderUUID.ID())
-
 	ctx := context.Background()
-	err = a.serviceProvider.OrderRepo().Create(ctx, orderUUID.ID(), requestData.CustomerID)
+	id, err := a.serviceProvider.OrderService().Create(ctx, &requestData)
 	if err != nil {
 		errMsg := fmt.Sprintf("Failed to create order: %s\n", err.Error())
 		http.Error(w, errMsg, http.StatusBadRequest)
 		return
 	}
+
+	response := fmt.Sprintf("Created order: ID = %d, CustomerID = %d", id, requestData.CustomerID)
+
+	fmt.Fprintln(w, response)
 
 }
 

@@ -73,10 +73,10 @@ func (r *repository) Create(ctx context.Context, orderID uint32, customerID uint
 
 	queryText := `
 	insert into orders (id, customer_id, restaurant_id, courier_id, status, timestamp)
-	values ($1, $2, 228, 228, $3)
+	values ($1, $2, 228, 228, $3, $4)
 	`
 
-	_, err := r.GetDB().ExecContext(ctx, queryText, orderID, customerID, time.Now())
+	_, err := r.GetDB().ExecContext(ctx, queryText, orderID, customerID, model.CUSTOMER_CREATED, time.Now())
 
 	return err
 }
